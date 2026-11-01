@@ -5,12 +5,12 @@ import DaftarResep from './components/DaftarResep.jsx';
 import KosongResep from './components/KosongResep.jsx';
 import FormTambahResep from './components/FormTambahResep.jsx';
 import Notifikasi from './components/Notifikasi.jsx';
+import DetailResep from './components/DetailResep.jsx';
+import InspirasiResep from './components/InspirasiResep.jsx';
 import {
   KUNCI_DATA, BATAS_BERANDA, dataAwal, filterResep, urutkanTerbaru,
 } from './data/resep.js';
 
-// Data dimuat dari localStorage; kalau belum ada, pakai data awal.
-// (Foto data awal adalah import, jadi path-nya dipulihkan dari dataAwal.)
 function muatData() {
   try {
     const tersimpan = localStorage.getItem(KUNCI_DATA);
@@ -21,13 +21,16 @@ function muatData() {
       });
     }
   } catch (e) {
-    // abaikan, pakai data awal
+    
   }
   return dataAwal;
 }
 
 function halamanDariHash() {
-  return window.location.hash === '#tambah' ? 'tambah' : 'beranda';
+  const hash = window.location.hash;
+  if (hash === '#tambah') return 'tambah';
+  if (hash.startsWith('#resep/')) return 'detail';
+  return 'beranda';
 }
 
 function App() {
@@ -87,6 +90,25 @@ function App() {
     return daftarResep.some((r) => r.judul.toLowerCase() === kunci);
   }
 
+  // Menyimpan resep dari API (data lengkap: bahan, langkah, durasi, porsi) ke koleksi pribadi.
+  function simpanDariApi(r) {
+    if (judulSudahAda(r.judul)) return;
+    setDaftarResep([...daftarResep, {
+      id: Date.now(),
+      judul: r.judul,
+      kategori: r.kategori,
+      waktu: r.waktu,
+      porsi: r.porsi,
+      deskripsi: r.deskripsi,
+      bahan: r.bahan,
+      langkah: r.langkah,
+      foto: r.foto,
+      halaman: '#',
+      favorit: false,
+    }]);
+    tampilNotifikasi('Resep disimpan ke ResepKu!');
+  }
+
   const kataCari = kata.trim();
   const hasilCari = urutkanTerbaru(filterResep(daftarResep, kata));
   const terbaru = urutkanTerbaru(daftarResep).slice(0, BATAS_BERANDA);
@@ -96,7 +118,14 @@ function App() {
     <>
       <Navbar onKlikBeranda={() => bukaHalaman('beranda')} />
 
-      {halaman === 'tambah' ? (
+      {halaman === 'detail' ? (
+        <main className="mx-auto max-w-3xl px-4 py-10 md:px-8">
+          <DetailResep
+            resep={daftarResep.find((r) => String(r.id) === window.location.hash.slice('#resep/'.length))}
+            onKembali={() => bukaHalaman('beranda')}
+          />
+        </main>
+      ) : halaman === 'tambah' ? (
         <main className="mx-auto max-w-3xl px-4 py-10 md:px-8">
           <FormTambahResep
             onTambah={tambahResep}
@@ -168,6 +197,8 @@ function App() {
               )}
             </>
           )}
+
+          <InspirasiResep onSimpan={simpanDariApi} sudahAda={judulSudahAda} />
         </main>
       )}
 

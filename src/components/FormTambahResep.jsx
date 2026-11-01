@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { kirimResepKeServer } from '../api/api.js';
 
 const FORM_KOSONG = {
   judul: '',
@@ -19,6 +20,8 @@ function Pesan({ teks }) {
 function FormTambahResep({ onTambah, onBatal, judulSudahAda }) {
   const [form, setForm] = useState(FORM_KOSONG);
   const [error, setError] = useState({});
+  const [mengirim, setMengirim] = useState(false);
+  const [errorServer, setErrorServer] = useState('');
 
   function ubah(e) {
     const { name, value } = e.target;
@@ -38,13 +41,13 @@ function FormTambahResep({ onTambah, onBatal, judulSudahAda }) {
     return e;
   }
 
-  function kirim(e) {
+  async function kirim(e) {
     e.preventDefault();
     const hasil = validasi();
     setError(hasil);
     if (Object.keys(hasil).length > 0) return;
 
-    onTambah({
+    const resepBaru = {
       id: Date.now(),
       judul: form.judul.trim(),
       kategori: form.kategori,
@@ -56,7 +59,19 @@ function FormTambahResep({ onTambah, onBatal, judulSudahAda }) {
       foto: null,
       halaman: '#',
       favorit: false,
-    });
+    };
+
+    setMengirim(true);
+    setErrorServer('');
+    try {
+      await kirimResepKeServer(resepBaru);
+    } catch (err) {
+      setErrorServer(err.message + ' Silakan coba lagi.');
+      setMengirim(false);
+      return;
+    }
+    setMengirim(false);
+    onTambah(resepBaru);
     setForm(FORM_KOSONG);
   }
 
@@ -126,14 +141,18 @@ function FormTambahResep({ onTambah, onBatal, judulSudahAda }) {
           <Pesan teks={error.langkah} />
         </div>
 
+        {errorServer && (
+          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 md:col-span-2">{errorServer}</p>
+        )}
+
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end md:col-span-2">
           <button type="button" onClick={onBatal}
             className="rounded-full border border-primary px-8 py-3 text-center font-semibold text-primary hover:bg-primary/10">
             Batal
           </button>
-          <button type="submit"
-            className="rounded-full bg-primary px-8 py-3 font-semibold text-white hover:opacity-90">
-            Tambah
+          <button type="submit" disabled={mengirim}
+            className="rounded-full bg-primary px-8 py-3 font-semibold text-white hover:opacity-90 disabled:opacity-60">
+            {mengirim ? 'Mengirim...' : 'Tambah'}
           </button>
         </div>
       </form>

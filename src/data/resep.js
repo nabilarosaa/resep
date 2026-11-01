@@ -79,8 +79,6 @@ export const dataAwal = [
   },
 ];
 
-// ---- fungsi bantu (dipindah dari script.js) ----
-
 export function filterResep(daftar, kata) {
   const kunci = kata.trim().toLowerCase();
   return daftar.filter((r) => r.judul.toLowerCase().includes(kunci));

@@ -37,7 +37,7 @@ function KartuResep({ resep, onToggleFavorit, onHapus }) {
         {tampilDeskripsi && <p className="mt-3 text-sm">{resep.deskripsi}</p>}
 
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          <a href={resep.halaman || '#'} className="font-semibold text-primary hover:underline">Lihat resep</a>
+          <a href={resep.halaman && resep.halaman !== '#' ? resep.halaman : '#resep/' + resep.id} className="font-semibold text-primary hover:underline">Lihat resep</a>
           <button
             type="button"
             onClick={() => setTampilDeskripsi(!tampilDeskripsi)}

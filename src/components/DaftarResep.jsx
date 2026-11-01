@@ -1,6 +1,5 @@
 import KartuResep from './KartuResep.jsx';
 
-// Satu bagian berjudul berisi grid kartu (render list dengan .map + key unik)
 function DaftarResep({ judul, daftar, onToggleFavorit, onHapus, aksi, className = 'mt-10' }) {
   return (
     <section className={className}>
